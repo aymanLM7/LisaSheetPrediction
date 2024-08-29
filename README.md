@@ -14,11 +14,12 @@ This script contains the functions that are used to make Large Language Models p
   ```bash
   python3 llm_lisa_sheet_prediction.py <number_of_questions>
 
-    <number_of_questions> represents how many questions the script should work on during that run (defaults to 500).
+    `<number_of_questions>` represents how many questions the script should work on during that run (defaults to 500).
 
-**Note:**
-    The script picks up right from where it left off.
-    Before running the script for the first time, you have to adapt the code so that it knows which database contains the questions you want it to work on (the initial code is adapted to a local database).
+**Note**:
+
+    - The script picks up right from where it left off. 
+    - Before running the script for the first time, you have to adapt the code so that it knows which database contains the questions you want it to work on (the initial code is adapted to a local database).
 
 ### `tlm_lisa_sheet_prediction.py`
 This script contains the functions that are used to make Tiny Language Models predict the corresponding sheets.
@@ -32,10 +33,11 @@ This script tests the predictions using LLM-generated questions (by Cyprien) whi
 
     python3 prediction_validation.py <number_of_questions> <model1>,<model2>,<model3>,...
 
-        <number_of_questions>: represents how many questions the script should work on during that run.
-        <model1>,<model2>,<model3>,...: represent the list (which can eventually contain only one) of models that you want to compare.
+        `<number_of_questions>`: represents how many questions the script should work on during that run.
+        `<model1>`,`<model2>`,`<model3>`,...: represent the list (which can eventually contain only one) of models that you want to compare.
 
-**Note:**
+**Note**:
+
       - The models need to be an exact copy of their ID on GroqCloud.
       - If you pass only one model in the arguments, the script will only print out the performance rather than generating an unnecessary graph.
       - The script also computes Rank A and Rank B accuracies, which can be found in the generated file: `sheet_accuracies.txt`.
