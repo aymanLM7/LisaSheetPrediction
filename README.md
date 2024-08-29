@@ -21,9 +21,9 @@ Script which contains the functions that are used to make Tiny Language Models p
 
 ### `prediction_validation.py`
 Script which tests the predictions using LLM generated questions (by Cyprien) which can be found in the file : 'generated_questions.csv'
-- If you want to compare model(s) by creating a graph, you can run it by using the following command: python3 prediction_validation.py <number_of_questions> <<model1>,<model2>,<model3>,...
+- If you want to compare model(s) by creating a graph, you can run it by using the following command: python3 prediction_validation.py <number_of_questions> <model1>,<model2>,<model3>,...
   -> <number_of_questions> represents how many questions you the script the work on during that run.
-  -> <<model1>,<model2>,<model3>,...: represent the list (which can eventually contain only 1) of models that you want to compare.
+  -> <model1>,<model2>,<model3>,...: represent the list (which can eventually contain only 1) of models that you want to compare.
   Note:
    - If you pass only 1 model in the arguments, the script will only print out the performance rather than making an unnecessary graph.
    - The Script also computes rank A and rank B accuracies, which can be found in the generated file: 'sheet_accuracies.txt'
