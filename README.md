@@ -16,8 +16,7 @@ This script contains the functions that are used to make Large Language Models p
 
     <number_of_questions> represents how many questions the script should work on during that run (defaults to 500).
 
-Note:
-
+**Note:**
     The script picks up right from where it left off.
     Before running the script for the first time, you have to adapt the code so that it knows which database contains the questions you want it to work on (the initial code is adapted to a local database).
 
@@ -36,10 +35,10 @@ This script tests the predictions using LLM-generated questions (by Cyprien) whi
         <number_of_questions>: represents how many questions the script should work on during that run.
         <model1>,<model2>,<model3>,...: represent the list (which can eventually contain only one) of models that you want to compare.
 
-Note:
-
-      If you pass only one model in the arguments, the script will only print out the performance rather than generating an unnecessary graph.
-      The script also computes Rank A and Rank B accuracies, which can be found in the generated file: sheet_accuracies.txt.
+**Note:**
+      - The models need to be an exact copy of their ID on GroqCloud.
+      - If you pass only one model in the arguments, the script will only print out the performance rather than generating an unnecessary graph.
+      - The script also computes Rank A and Rank B accuracies, which can be found in the generated file: `sheet_accuracies.txt`.
 
 ### `results-withCorrections.csv`
 This file contains the learning objective to Knowledge Item mapping, which was verified by a medical field expert (Olivier). The initial mapping before the verification is in the file: `results.csv`.
