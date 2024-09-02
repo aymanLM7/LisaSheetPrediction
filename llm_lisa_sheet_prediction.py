@@ -4,6 +4,7 @@ import time
 from random import shuffle, seed
 import glob
 import csv
+import sys
 import json
 import re
 from collections import defaultdict
@@ -15,7 +16,7 @@ from groq import Groq
 count = 1
 seed(42)
 # I've put multiple api keys in order to have the ability to swap between them without stopping the script so as not to go over the GroqCloud free token limit
-clients = [Groq(api_key="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"), Groq(api_key="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")] # TODO remove
+clients = [Groq(api_key="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"), Groq(api_key="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"), Groq(api_key="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")] # TODO remove
 db_params = {
     'dbname': 'uness',
     'user': 'postgres',
@@ -48,9 +49,14 @@ questions_df = pd.read_sql_query(questions_query, connection)
 meta_df = pd.read_sql_query(meta_query, connection)
 
 # Merging our data
-merged_df = questions_df.merge(meta_df, on='metadata_id', how='inner')
+merged_df = questions_df.merge(meta_df, on='metadata_id', how='inner').groupby('question_id').first().reset_index()
 filtered_df = merged_df[merged_df['question_id'] > last_question_id] # to work only the questions which were not already predicted
-nb_questions = 200  # If you want to run the script for each 200 questions and double check after each batch
+nb_questions = 500  # If you want to run the script for each 500 questions and double check after each batch (default value)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Since you didn't explicitly choose how many questions you wanted to work on, the default value is 500 questions. (Usage: python3 llm_lisa_sheet_prediction.py <number_of_questions>)")
+    else:
+        nb_questions = int(sys.argv[1])
 ordered_df = filtered_df.sort_values(by='question_id').head(nb_questions)
 
 metaItems = pd.read_csv('results-withCorrections.csv', delimiter=';')
@@ -282,7 +288,7 @@ def match_questions_to_sheets(questions, max_tokens, isTest, chosenModel):
 
         for _, row in questions.iterrows():
             if step % 35 == 0:
-                turn = (turn + 1) % 2
+                turn = (turn + 1) % 3
                 client = clients[turn]
 
             question_id = row['question_id']
@@ -316,11 +322,13 @@ def match_questions_to_sheets(questions, max_tokens, isTest, chosenModel):
                     except Exception as e:
                         if "Error code: 503" in str(e):
                             print("503 Service Unavailable. Retrying in 10 seconds...")
-                            retry_count += 1
                             time.sleep(10)  # Wait for 10 seconds before retrying
                         else:
-                            predicted_sheet = 'OIC-001-01-A'
-                            break  # Exit the retry loop on other exceptions
+                            print(e)
+                            retry_count += 1
+                            timer = 300 * retry_count**2 # Waiting time exponentially increases so that the script does not crash
+                            print(f'Token limit reached. Retrying in {timer / 60} minutes...\n')
+                            time.sleep(timer)
 
                 if retry_count == max_retries:
                     print("Max retries reached. Assigning default value.")
@@ -359,5 +367,4 @@ if __name__ == "__main__":
     max_tokens = 8000
     isTest = False
     chosenModel = "llama-3.1-70b-versatile"
-    print(ordered_df)
     match_questions_to_sheets(ordered_df, max_tokens, isTest, chosenModel)
