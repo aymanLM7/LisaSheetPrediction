@@ -1,7 +1,7 @@
 """Script to validate the LISA sheet prediction"""
 import ast
-import json
 import pandas as pd
+import sys
 import matplotlib.pyplot as plt
 from groq import Groq
 from llm_lisa_sheet_prediction import match_questions_to_sheets, summarize_text
@@ -32,7 +32,7 @@ def get_correct_answer(question):
 
 
 def generate_description(question):
-    """Helper func that generates a prediction using the context with retry mechanism"""
+    """Helper func that generates a description in case you want to add it in the prompt"""
     with open(f"lisa_sheets/{question['lisa_sheet_id'][1:7]}/{question['lisa_sheet_id']}.txt", 'r') as f:
         content = f.read()
         sheet = content.split('|')[5].strip()
@@ -80,6 +80,7 @@ def add_description(questions):
 
 
 def compute_accuracy(nb_questions, questions_df, max_tokens, chosenModel):
+    """Computes the general accuracy and the accuracy for rank A and rank B questions"""
     sampled_questions_df = questions_df.sample(n=nb_questions, random_state=546)
     sampled_questions_df['correct_answer'] = sampled_questions_df.apply(get_correct_answer, axis=1)
     
@@ -102,10 +103,43 @@ def compute_accuracy(nb_questions, questions_df, max_tokens, chosenModel):
     return precision, rank_A_precision, rank_B_precision
 
 
-nb_questions = 100
-models = ["llama-3.1-70b-versatile", "llama3-8b-8192"]
-for chosenModel in models:
-    precision, rank_A_precision, rank_B_precision = compute_accuracy(nb_questions, questions_df, 8000, chosenModel)
-    print(f'nb_questions: {nb_questions} -> Precision: {precision:.2f} - Rank A Precision: {rank_A_precision} - Rank B Precision: {rank_B_precision}')
-    with open('sheet_accuracies.txt', 'a') as file: # I store the accuracies in a separate file with which I can draw a graph when I want (rather than drawing graphs every time even when they aren't as interesting) 
-        file.write(f'While Using {chosenModel} on nb_questions: {nb_questions} -> Precision: {precision:.2f} - Rank A Precision: {rank_A_precision} - Rank B Precision: {rank_B_precision}\n-----\n')
+def main():
+    # Check if correct number of arguments is provided
+    if len(sys.argv) < 3:
+        print("Usage: python script.py <nb_questions> <model1>,<model2>,<model3>,...")
+        sys.exit(1)
+
+    # Parse the arguments
+    nb_questions = int(sys.argv[1])
+    models = sys.argv[2].split(",")
+
+    # Dictionary to store the precision results
+    precision_dict = {}
+
+    for chosenModel in models:
+        precision, rank_A_precision, rank_B_precision = compute_accuracy(nb_questions, questions_df, 8000, chosenModel)
+        print(f'nb_questions: {nb_questions} -> Precision: {precision:.2f} - Model: {chosenModel}')
+        
+        # Store the precision in the dictionary
+        precision_dict[chosenModel] = precision
+
+        # Write the precision in a file
+        with open('sheet_accuracies.txt', 'a') as file:
+            file.write(f'nb_questions: {nb_questions} -> Precision: {precision:.2f} , Rank A Precision: {rank_A_precision:.2f} , Rank B Precision: {rank_B_precision:.2f} - Model: {chosenModel}\n-----\n')
+    if len(models) == 1:
+        return
+
+    # Plotting the results
+    plt.figure(figsize=(10, 6))
+    plt.bar(precision_dict.keys(), precision_dict.values(), color='skyblue')
+    plt.xlabel('Models')
+    plt.ylabel('Performance (%)')
+    plt.title('Model Performance Comparison')
+    plt.ylim(0, 100) 
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('model_performance_comparison.png')
+    plt.show()
+
+if __name__ == "__main__":
+    main()
